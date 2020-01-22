@@ -1,10 +1,11 @@
-var fs = require('fs')
+const  fs = require('fs')
   , gm = require('gm').subClass({imageMagick: true});;
 
 
 
-function draw(w, h, accentColor, score, text, rotation){
+function draw(w, h, title, bottomText, topText, rotation){
 
+    let accentColor = "#4285f4";
     let background2 = "#ffffff";
     let background = "#fffffe";
     let alpha = "#FFffffff";
@@ -16,17 +17,17 @@ function draw(w, h, accentColor, score, text, rotation){
     let circle3 =  h*0.8875;
     let circle4 =  h*0.875;
 
-    let rectangleX1 = 0
-    let rectangleY1 = h*0.375;
-    let rectangleX2 = h*1.1;
-    let rectangleY2 = h*0.625;
+    let rectangleX1 = w * 0.07;
+    let rectangleY1 = h * 0.375;
+    let rectangleX2 = w * 0.93;
+    let rectangleY2 = h * 0.625;
 
     let fontSizeNormal = h * 0.10;
     let fontSizeTitle = h * 0.12;
 
-    let bottomText = h * 0.230;
+    let bottomTextSize = h * 0.230;
 
-    let topText = h * -0.220;
+    let topTextSize = h * -0.220;
 
     gm(w, h, background2)
         .antialias(true)
@@ -42,17 +43,18 @@ function draw(w, h, accentColor, score, text, rotation){
         .drawRectangle(rectangleX1, rectangleY1, rectangleX2, rectangleY2)
         .font("Helvetica.ttf", fontSizeTitle)
         .fill(background)
-        .drawText(0, 0, "Access Monitor", "center")
+        .drawText(0, 0, title, "center")
         .font("Helvetica.ttf", fontSizeNormal)
         .fill(accentColor)
-        .drawText(0, bottomText, score, "center")
+        .drawText(0, bottomTextSize, bottomText, "center")
         .fill(accentColor)
-        .drawText(0, topText, text, "center")
+        .drawText(0, topTextSize, topText, "center")
         .rotate(alpha, rotation)
         .transparent(alpha)
         .write("s.png", function (err) {
-            console.log(err);
+            if(err)
+              console.log(err);
         });
 }
 
-draw(1000, 1000, "#ff5c57", "8.6/10", "AAA 100%", -25);
+draw(1000, 1000, "Access Monitor", "8.6/10", "AAA 100%", 0);
