@@ -1,193 +1,97 @@
-const  fs = require('fs')
-  , gm = require('gm').subClass({imageMagick: true});;
 
-
-
-function draw(w, h, percentage, topMidText, bottomMidText, bottomText, rotation){
-
-    let accentColor = "#4285f4";
-    let background2 = "#ffffff";
-    let background = "#fffffe";
-    let alpha = "#FFffffff";
-    let black = "#000000";
-    let grey = "#616161";
-
-    let centerX = w/2;
-    let centerY = h/2;
-    let circle1 =  h;
-    let circle2 =  h*0.95;
-    let circle3 =  h*0.8875;
-    let circle4 =  h*0.875;
-
-    let fontNormal = "Arial.ttf"
-
-    let percentageSize = h * 0.15;
-    let topMidTextSize = h * 0.15;
-    let bottomMidTextSize = h * 0.05;
-    let bottomTextSize = h * 0.05;
-
-    let percentagePosition = h * - 0.13;
-    let topMidTextPosition = h * 0.01;
-    let bottomTextPosition = h * 0.25;
-    let bottomMidTextPosition = h * 0.30;
-    let progressXRightPie = 0;
-    let progressYRightPie = 0;
-    let progressXLeftPie = 0;
-    let progressYLeftPie = 0;
-
-    let badge = gm(w, h, background2)
-    .antialias(true)
-    .fill(grey)
-    .drawCircle(centerX, centerY, circle1, centerY)
-    .fill(accentColor);
-
-    if(percentage < 50){
-
-      let rads = (percentage * 180 / 50) * (Math.PI / 180);
-      progressXRightPie = 500 + Math.sin(rads) * centerX // radius
-      progressYRightPie = 500 - Math.cos(rads) * centerY // radius
-
-      badge.draw("path 'M "+centerX+","+centerY+" L "+centerX+","+0+" A "+centerX+","+centerY+" 0 0,1 "+progressXRightPie+","+progressYRightPie+" Z'")
-
-    }else{
-      let half = percentage - 50
-      let rads = (half * 180 / 50) * (Math.PI / 180);
-
-      progressXRightPie = w / 2
-      progressYRightPie = h
-      progressXLeftPie = 500 - Math.sin(rads) * centerX // radius
-      progressYLeftPie = 500 + Math.cos(rads) * centerY // radius
-
-      badge.draw("path 'M "+centerX+","+centerY+" L "+centerX+","+0+" A "+centerX+","+centerY+" 0 0,1 "+progressXRightPie+","+progressYRightPie+" Z'")
-      badge.draw("path 'M "+centerX+","+centerY+" L "+centerX+","+h+" A "+centerX+","+centerY+" 0 0,1 "+progressXLeftPie+","+progressYLeftPie+" Z'")
-      console.log("path 'M "+centerX+","+centerY+" L "+centerX+","+h+" A "+centerX+","+centerY+" 0 0,1 "+progressXLeftPie+","+progressYLeftPie+" Z'");
-    }
-
-    badge.fill(background)
-        .fill(background)
-        .drawCircle(centerX, centerY, circle2, centerY)
-        // TOP TEXT
-        //.font(fontNormal, percentageSize)
-        //.fill(black)
-        //.drawText(0, percentagePosition, percentage+"%", "center")
-        // // TOP MID TEXT
-        // .font(fontNormal, topMidTextSize)
-        // .fill(grey)
-        // .drawText(0, topMidTextPosition, topMidText, "center")
-        // // BOTTOM MID TEXT
-        // .font(fontNormal, bottomMidTextSize)
-        // .fill(black)
-        // .drawText(0, bottomTextPosition, bottomMidText, "center")
-        // // BOTTOM TEXT
-        // .font(fontNormal, bottomTextSize)
-        // .fill(black)
-        // .drawText(0, bottomMidTextPosition, bottomText, "center")
-        // ALPHA
-        .transparent(alpha)
-        // SAVE
-        .write("s.png", function (err) {
-            if(err)
-              console.log(err);
-        });
+function addText(badge, x, y, fontFamily, fontStyle, fontSize, fontWeight, textAnchor, stroke, fill, text){
+  badge.text({
+    x: x,
+    y: y,
+    'font-family': fontFamily,
+    'font-style': fontStyle,
+    'font-size': fontSize,
+    'font-weight': fontWeight,
+    'text-anchor': textAnchor,
+    stroke: stroke,
+    fill: fill
+  }, text)
 }
 
-function svg(w, h, percentage, topMidText, bottomMidText, bottomText, rotation){
-  let accentColor = "#4285f4";
-    let background2 = "#ffffff";
-    let background = "#fffffe";
-    let alpha = "#FFffffff";
-    let black = "#000000";
-    let grey = "#616161";
+function addCircle(badge, radius, cx, cy, fill){
+  badge.circle({
+      r: radius,
+      fill: fill,
+      'stroke-width': 0,
+      cx: cx,
+      cy: cy
+    });
+}
 
-    let centerX = w/2;
-    let centerY = h/2;
-    let circle1 =  h;
-    let circle2 =  h*0.95;
-    let circle3 =  h*0.8875;
-    let circle4 =  h*0.875;
+function addPath(badge, path, fill){
+  badge.path({
+    fill: fill,
+    d: path
+  });
+}
 
-    let fontNormal = "Arial.ttf"
+function generateSVG(w, h, percentage, conformance, index) {
 
-    let percentageSize = h * 0.15;
-    let topMidTextSize = h * 0.15;
-    let bottomMidTextSize = h * 0.05;
-    let bottomTextSize = h * 0.05;
+  const accent = "#4285f4";
+  const background = "#ffffff";
+  const black = "#000000";
+  const grey = "#616161";
 
-    let percentagePosition = h * - 0.13;
-    let topMidTextPosition = h * 0.01;
-    let bottomTextPosition = h * 0.25;
-    let bottomMidTextPosition = h * 0.30;
-    let progressXRightPie = 0;
-    let progressYRightPie = 0;
-    let progressXLeftPie = 0;
-    let progressYLeftPie = 0;
+  const centerX = w / 2;
+  const centerY = h / 2;
 
-  var svg = require('svg-builder')
-        .width(w)
-        .height(h);
+  const fontFamily = "verdana";
+  const percentageFontSize = 90*h/500;
+  const conformanceFontSize = 70*h/500;
+  const indexFontSize = 30*h/500;
+  const brandFontSize = 30*h/500;
+
+  let progressXRightPie = 0;
+  let progressYRightPie = 0;
+  let progressXLeftPie = 0;
+  let progressYLeftPie = 0;
+
+  var badge = require('svg-builder')
+    .width(w)
+    .height(h);
+
+  addCircle(badge, centerX, centerX, centerY, grey);
+
+  if (percentage < 50) {
+
+    let rads = (percentage * 180 / 50) * (Math.PI / 180);
+    progressXRightPie = centerX + Math.sin(rads) * centerX // radius
+    progressYRightPie = centerY - Math.cos(rads) * centerY // radius
+
+    addPath(badge, "M " + centerX + "," + centerY + " L " + centerX + "," + 0 + " A " + centerX + "," + centerY + " 0 0,1 " + progressXRightPie + "," + progressYRightPie + " Z", accent);
+
+  } else {
+    let half = percentage - 50
+    let rads = (half * 180 / 50) * (Math.PI / 180);
+
+    progressXRightPie = w / 2
+    progressYRightPie = h
+    progressXLeftPie = centerX - Math.sin(rads) * centerX // radius
+    progressYLeftPie = centerY + Math.cos(rads) * centerY // radius
+
  
-    var badge = svg
-        .circle({
-            r: centerX,
-            fill: grey,
-            'stroke-width': 0,
-            cx: centerX,
-            cy: centerY
-        });
-        // .text({
-        //     x: 10,
-        //     y: 20,
-        //     'font-family': 'helvetica',
-        //     'font-size': 15,
-        //     stroke : '#fff',
-        //     fill: '#fff'
-        // }, 'My logo');
+    addPath(badge, "M " + centerX + "," + centerY + " L " + centerX + "," + 0 + " A " + centerX + "," + centerY + " 0 0,1 " + progressXRightPie + "," + progressYRightPie + " Z", accent);
+    addPath(badge, "M " + centerX + "," + centerY + " L " + centerX + "," + h + " A " + centerX + "," + centerY + " 0 0,1 " + progressXLeftPie  + "," + progressYLeftPie  + " Z", accent);
 
-        if(percentage < 50){
+  }
 
-          let rads = (percentage * 180 / 50) * (Math.PI / 180);
-          progressXRightPie = 500 + Math.sin(rads) * centerX // radius
-          progressYRightPie = 500 - Math.cos(rads) * centerY // radius
+  addCircle(badge, centerX * 0.85, centerX, centerY, background);
 
-          badge.path({fill: accentColor, d:"M "+centerX+","+centerY+" L "+centerX+","+0+" A "+centerX+","+centerY+" 0 0,1 "+progressXRightPie+","+progressYRightPie+" Z"});
-    
-        }else{
-          let half = percentage - 50
-          let rads = (half * 180 / 50) * (Math.PI / 180);
-    
-          progressXRightPie = w / 2
-          progressYRightPie = h
-          progressXLeftPie = 500 - Math.sin(rads) * centerX // radius
-          progressYLeftPie = 500 + Math.cos(rads) * centerY // radius
-    
-          badge.path({fill: accentColor, d:"M "+centerX+","+centerY+" L "+centerX+","+0+" A "+centerX+","+centerY+" 0 0,1 "+progressXRightPie+","+progressYRightPie+" Z"});
-          badge.path({fill: accentColor, d:"M "+centerX+","+centerY+" L "+centerX+","+h+" A "+centerX+","+centerY+" 0 0,1 "+progressXLeftPie+","+progressYLeftPie+" Z'"});
+  addText(badge, centerX,          centerY*(1-0.15), fontFamily, 'normal', percentageFontSize,  'bold',   'middle', black, black, percentage + "%")
+  addText(badge, centerX,          centerY*(1+0.20), fontFamily, 'normal', conformanceFontSize, 'normal', 'middle', grey,  grey,  conformance)
+  addText(badge, centerX,          centerY*(1+0.45), fontFamily, 'normal', indexFontSize,       'normal', 'middle', black, black, index)
+  addText(badge, centerX*(1-0.24), centerY*(1+0.64), fontFamily, 'italic', brandFontSize,       'normal', 'middle', black, black, "Access")
+  addText(badge, centerX*(1+0.24), centerY*(1+0.64), fontFamily, 'normal', brandFontSize,       'bold',   'middle', black, black, "Monitor")
 
-        }
+  render = badge.render();
 
-        badge.circle({
-          r: centerX*0.95,
-          fill: background,
-          'stroke-width': 0,
-          cx: centerX,
-          cy: centerY
-        });
-
-        badge.text({
-          x: centerX,
-          y: centerY,
-          'font-family': 'verdana',
-          'font-size': 70,
-          'font-weight': 'bold',
-          'text-anchor': 'middle',
-          stroke : '#fff',
-          fill: '#fff'
-      }, percentage+"%")
-
-        render = badge.render();
-
-        console.log(render)
+  console.log(render)
 
 }
 
-svg(1000, 1000, 71, "AAA", "indice: 8.6", "AccessMonitor", 0);
+generateSVG(1000, 1000, 35, "AA", "índice: 3.2");
